@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中际旭创(300308) 量化指标分析</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-light: #eff6ff;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-list {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.75rem 0;
+        }
+
+        .nav-item {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            border: none;
+            background: transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Main Content */
+        .main {
+            padding: 2rem 0;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .chart-container {
+            width: 100%;
+            min-height: 500px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+            min-width: 120px;
+        }
+
+        .control-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .control-group input[type="range"] {
+            width: 160px;
+            cursor: pointer;
+        }
+
+        .control-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .control-group input[type="number"] {
+            width: 80px;
+            padding: 0.375rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-size: 0.85rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .formula-box {
+            background: var(--bg-primary);
+            border-left: 4px solid var(--accent);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .description-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .description-card {
+            background: var(--bg-primary);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+        }
+
+        .description-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .description-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .description-card ul {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding-left: 1.25rem;
+        }
+
+        .description-card li {
+            margin-bottom: 0.375rem;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tag-primary {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .tag-success {
+            background: #f0fdf4;
+            color: var(--success);
+        }
+
+        .tag-danger {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        .data-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--bg-primary);
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .summary-item .value {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Tabs inside cards */
+        .tab-group {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Loading overlay */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .control-group input[type="range"] {
+                width: 100%;
+            }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>中际旭创 (300308.SZ) 量化指标分析</h1>
+                    <p class="subtitle">交互式技术分析与 WorldQuant 101 Alpha 因子展示</p>
+                    <div class="stock-badge">
+                        <span>数据来源：</span>
+                        <span>日线数据 CSV</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">数据区间</div>
+                    <div class="stat-value" id="stat-range">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">交易日数</div>
+                    <div class="stat-value" id="stat-days">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">最新收盘价</div>
+                    <div class="stat-value" id="stat-close">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">区间涨幅</div>
+                    <div class="stat-value" id="stat-return">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">平均成交量</div>
+                    <div class="stat-value" id="stat-vol">-</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-list">
+                <button class="nav-item active" data-section="overview">数据概览</button>
+                <button class="nav-item" data-section="rsi">RSI</button>
+                <button class="nav-item" data-section="macd">MACD</button>
+                <button class="nav-item" data-section="bollinger">布林带</button>
+                <button class="nav-item" data-section="worldquant">WorldQuant 101</button>
+                <button class="nav-item" data-section="methods">计算方法</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <!-- 数据概览 -->
+            <section class="section active" id="overview">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">K 线图与成交量</div>
+                            <div class="card-subtitle">鼠标悬停查看 OHLC 数据，可缩放/平移</div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="resetZoom('chart-overview')">重置缩放</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="chart-overview" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">数据诊断摘要</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-summary" id="data-summary">
+                            <!-- JS populated -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RSI -->
+            <section class="section" id="rsi">
+                <div class="card">
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>RSI 周期</label>
+                            <input type="range" id="rsi-period" min="5" max="30" value="14" step="1">
+                            <span class="control-value" id="rsi-period-value">14</span>
+                        </div>
+                        <div class="control-group">
+                            <label>超买阈值</label>
+                            <input type="range" id="rsi-overbought" min="60" max="90" value="70" step="1">
+                            <span class="control-value" id="rsi-overbought-value">70</span>
+                        </div>
+                        <div class="control-group">
+                            <label>超卖阈值</label>
+                            <input type="range" id="rsi-oversold" min="10" max="40" value="30" step="1">
+                            <span class="control-value" id="rsi-oversold-value">30</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="resetSection('rsi')">恢复默认</button>
+                    </div>
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">RSI 相对强弱指数</div>
+                            <div class="card-subtitle">衡量价格动量与超买超卖状态</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="chart-rsi" class="chart-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MACD -->
+            <section class="section" id="macd">
+                <div class="card">
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>快线 (DIF)</label>
+                            <input type="number" id="macd-fast" min="3" max="30" value="12" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label>慢线 (DEA)</label>
+                            <input type="number" id="macd-slow" min="10" max="60" value="26" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label>信号线</label>
+                            <input type="number" id="macd-signal" min="3" max="30" value="9" step="1">
+                        </div>
+                        <button class="btn btn-primary" onclick="resetSection('macd')">恢复默认</button>
+                    </div>
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">MACD 指数平滑异同移动平均线</div>
+                            <div class="card-subtitle">判断趋势方向与动量变化</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="chart-macd" class="chart-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bollinger -->
+            <section class="section" id="bollinger">
+                <div class="card">
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>布林带周期</label>
+                            <input type="range" id="boll-window" min="10" max="60" value="20" step="1">
+                            <span class="control-value" id="boll-window-value">20</span>
+                        </div>
+                        <div class="control-group">
+                            <label>标准差倍数</label>
+                            <input type="range" id="boll-std" min="1" max="4" value="2" step="0.1">
+                            <span class="control-value" id="boll-std-value">2.0</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="resetSection('bollinger')">恢复默认</button>
+                    </div>
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">布林带 Bollinger Bands</div>
+                            <div class="card-subtitle">衡量价格波动率与相对位置</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="chart-bollinger" class="chart-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WorldQuant 101 -->
+            <section class="section" id="worldquant">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">WorldQuant 101 Alpha 因子</div>
+                            <div class="card-subtitle">参考经典公式化 Alpha 因子</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-group">
+                            <button class="tab active" data-tab="alpha12">Alpha #12</button>
+                            <button class="tab" data-tab="alpha101">Alpha #101</button>
+                        </div>
+                        <div class="tab-content active" id="tab-alpha12">
+                            <div style="padding: 1.5rem;">
+                                <div class="formula-box">
+                                    Alpha#12 = sign(Δvolume) × (-1 × Δclose)
+                                </div>
+                                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                                    量价背离因子。当成交量增加而价格上涨时，因子值为负（可能的看空信号）；
+                                    当成交量减少而价格下跌时，因子值为正（可能的看多信号）。
+                                </p>
+                                <div id="chart-alpha12" class="chart-container" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="tab-alpha101">
+                            <div style="padding: 1.5rem;">
+                                <div class="formula-box">
+                                    Alpha#101 = (close - open) / ((high - low) + 0.001)
+                                </div>
+                                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                                    日内价格位置因子。衡量收盘价在当日价格区间中的相对位置。
+                                    值接近 +1 表示收盘接近最高价（强势），接近 -1 表示收盘接近最低价（弱势）。
+                                </p>
+                                <div id="chart-alpha101" class="chart-container" style="min-height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 计算方法 -->
+            <section class="section" id="methods">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">技术指标计算方法与作用</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="description-grid">
+                            <div class="description-card">
+                                <h3><span style="color: var(--accent);">📈</span> RSI 相对强弱指数</h3>
+                                <p><strong>作用：</strong>衡量价格变动的速度和幅度，识别超买（>70）和超卖（<30）区域。</p>
+                                <p><strong>计算步骤：</strong></p>
+                                <ul>
+                                    <li>计算价格变化 Δ = close - close(-1)</li>
+                                    <li>分别计算上涨和下跌的平均值</li>
+                                    <li>RS = 平均上涨 / 平均下跌</li>
+                                    <li>RSI = 100 - 100/(1 + RS)</li>
+                                </ul>
+                            </div>
+                            <div class="description-card">
+                                <h3><span style="color: var(--accent);">📊</span> MACD</h3>
+                                <p><strong>作用：</strong>判断趋势方向、强度和转折点。DIF 上穿 DEA 为金叉，下穿为死叉。</p>
+                                <p><strong>计算步骤：</strong></p>
+                                <ul>
+                                    <li>DIF = EMA(close, fast) - EMA(close, slow)</li>
+                                    <li>DEA = EMA(DIF, signal)</li>
+                                    <li>MACD柱 = 2 × (DIF - DEA)</li>
+                                </ul>
+                            </div>
+                            <div class="description-card">
+                                <h3><span style="color: var(--accent);">🎯</span> 布林带 Bollinger Bands</h3>
+                                <p><strong>作用：</strong>衡量价格波动率和相对位置。价格触及上轨可能超买，触及下轨可能超卖。</p>
+                                <p><strong>计算步骤：</strong></p>
+                                <ul>
+                                    <li>中轨 = N日收盘价的简单移动平均</li>
+                                    <li>标准差 = N日收盘价的标准差</li>
+                                    <li>上轨 = 中轨 + k × 标准差</li>
+                                    <li>下轨 = 中轨 - k × 标准差</li>
+                                </ul>
+                            </div>
+                            <div class="description-card">
+                                <h3><span style="color: var(--accent);">🔬</span> WorldQuant 101</h3>
+                                <p><strong>作用：</strong>基于量价关系的公式化 Alpha 因子，用于量化选股和策略构建。</p>
+                                <p><strong>选取的两个因子：</strong></p>
+                                <ul>
+                                    <li>Alpha#12: 量价背离</li>
+                                    <li>Alpha#101: 日内价格位置</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Generated by WorkBuddy · 中际旭创(300308) 量化分析</p>
+        </div>
+    </footer>
+
+    <script>
+        // 嵌入的股票数据（从 stock_data.json 生成）
+        const STOCK_DATA = [{"date": "2025-07-04", "open": 143.11, "high": 145.18, "low": 138.55, "close": 139.45, "vol": 418744.79, "amount": 5927014.31, "pct_chg": -1.9753}, {"date": "2025-07-07", "open": 137.5, "high": 139.77, "low": 130.21, "close": 135.15, "vol": 575204.24, "amount": 7722491.42, "pct_chg": -3.0835}, {"date": "2025-07-08", "open": 134.76, "high": 145.26, "low": 133.82, "close": 144.88, "vol": 532241.12, "amount": 7500377.25, "pct_chg": 7.1994}, {"date": "2025-07-09", "open": 145.0, "high": 149.36, "low": 144.05, "close": 145.3, "vol": 415095.61, "amount": 6085220.99, "pct_chg": 0.2899}, {"date": "2025-07-10", "open": 146.52, "high": 148.68, "low": 142.0, "close": 146.59, "vol": 435403.97, "amount": 6336658.7, "pct_chg": 0.8878}, {"date": "2025-07-11", "open": 144.74, "high": 147.88, "low": 142.55, "close": 145.28, "vol": 310988.62, "amount": 4513795.97, "pct_chg": -0.8936}, {"date": "2025-07-14", "open": 144.33, "high": 150.5, "low": 144.33, "close": 149.82, "vol": 388531.91, "amount": 5781039.35, "pct_chg": 3.125}, {"date": "2025-07-15", "open": 155.3, "high": 174.99, "low": 155.3, "close": 174.81, "vol": 924064.24, "amount": 15619206.71, "pct_chg": 16.68}, {"date": "2025-07-16", "open": 179.8, "high": 181.97, "low": 169.67, "close": 170.76, "vol": 905851.77, "amount": 15982905.35, "pct_chg": -2.3168}, {"date": "2025-07-17", "open": 169.19, "high": 178.99, "low": 169.17, "close": 176.85, "vol": 604630.77, "amount": 10555310.88, "pct_chg": 3.5664}, {"date": "2025-07-18", "open": 181.18, "high": 192.01, "low": 179.0, "close": 180.62, "vol": 611562.21, "amount": 11298766.46, "pct_chg": 2.1318}, {"date": "2025-07-21", "open": 179.89, "high": 188.4, "low": 177.18, "close": 187.95, "vol": 596835.09, "amount": 10909835.93, "pct_chg": 4.0582}, {"date": "2025-07-22", "open": 187.1, "high": 197.1, "low": 181.4, "close": 184.44, "vol": 592912.85, "amount": 11209847.41, "pct_chg": -1.8675}, {"date": "2025-07-23", "open": 179.0, "high": 187.88, "low": 176.0, "close": 186.18, "vol": 405783.73, "amount": 7395940.4, "pct_chg": 0.9434}, {"date": "2025-07-24", "open": 190.5, "high": 192.96, "low": 181.67, "close": 185.2, "vol": 442080.06, "amount": 8263192.06, "pct_chg": -0.5264}, {"date": "2025-07-25", "open": 186.0, "high": 189.9, "low": 184.51, "close": 185.22, "vol": 287877.43, "amount": 5368796.81, "pct_chg": 0.0108}, {"date": "2025-07-28", "open": 186.0, "high": 193.23, "low": 184.2, "close": 191.87, "vol": 438947.65, "amount": 8281245.57, "pct_chg": 3.5903}, {"date": "2025-07-29", "open": 198.01, "high": 210.99, "low": 198.01, "close": 209.93, "vol": 584403.68, "amount": 12100039.46, "pct_chg": 9.4126}, {"date": "2025-07-30", "open": 207.06, "high": 211.8, "low": 203.59, "close": 210.6, "vol": 390505.74, "amount": 8122926.81, "pct_chg": 0.3192}, {"date": "2025-07-31", "open": 221.0, "high": 228.6, "low": 215.93, "close": 217.61, "vol": 644065.94, "amount": 14274550.6, "pct_chg": 3.3286}, {"date": "2025-08-01", "open": 212.52, "high": 220.88, "low": 207.63, "close": 210.63, "vol": 475946.74, "amount": 10151901.43, "pct_chg": -3.2076}, {"date": "2025-08-04", "open": 207.53, "high": 210.34, "low": 204.5, "close": 208.42, "vol": 330837.39, "amount": 6857077.17, "pct_chg": -1.0492}, {"date": "2025-08-05", "open": 216.5, "high": 218.37, "low": 203.5, "close": 210.92, "vol": 414137.57, "amount": 8698318.76, "pct_chg": 1.1995}, {"date": "2025-08-06", "open": 206.71, "high": 213.58, "low": 206.61, "close": 210.52, "vol": 255301.56, "amount": 5366654.09, "pct_chg": -0.1896}, {"date": "2025-08-07", "open": 210.52, "high": 216.0, "low": 197.2, "close": 208.46, "vol": 453076.51, "amount": 9320003.54, "pct_chg": -0.9785}, {"date": "2025-08-08", "open": 207.0, "high": 213.88, "low": 205.0, "close": 209.3, "vol": 327315.08, "amount": 6886805.78, "pct_chg": 0.403}, {"date": "2025-08-11", "open": 210.0, "high": 220.5, "low": 209.99, "close": 214.75, "vol": 350762.52, "amount": 7548075.95, "pct_chg": 2.6039}, {"date": "2025-08-12", "open": 215.0, "high": 226.39, "low": 213.0, "close": 225.68, "vol": 430829.31, "amount": 9534149.02, "pct_chg": 5.0896}, {"date": "2025-08-13", "open": 226.75, "high": 252.96, "low": 224.0, "close": 252.0, "vol": 551265.47, "amount": 13273577.99, "pct_chg": 11.6625}, {"date": "2025-08-14", "open": 246.4, "high": 248.09, "low": 239.4, "close": 239.47, "vol": 407601.33, "amount": 9927494.34, "pct_chg": -4.9722}, {"date": "2025-08-15", "open": 241.47, "high": 245.45, "low": 235.11, "close": 238.05, "vol": 350540.8, "amount": 8382671.26, "pct_chg": -0.593}, {"date": "2025-08-18", "open": 241.62, "high": 268.0, "low": 238.08, "close": 260.0, "vol": 469849.79, "amount": 11956921.11, "pct_chg": 9.2208}, {"date": "2025-08-19", "open": 260.0, "high": 277.58, "low": 258.9, "close": 275.5, "vol": 409789.34, "amount": 11069282.56, "pct_chg": 5.9615}, {"date": "2025-08-20", "open": 261.99, "high": 269.0, "low": 257.41, "close": 267.79, "vol": 408197.32, "amount": 10773818.99, "pct_chg": -2.7985}, {"date": "2025-08-21", "open": 272.8, "high": 274.6, "low": 256.1, "close": 265.22, "vol": 394435.93, "amount": 10428978.81, "pct_chg": -0.9597}, {"date": "2025-08-22", "open": 259.11, "high": 280.88, "low": 259.0, "close": 278.9, "vol": 382581.65, "amount": 10408840.53, "pct_chg": 5.158}, {"date": "2025-08-25", "open": 288.0, "high": 320.0, "low": 288.0, "close": 320.0, "vol": 498061.31, "amount": 15236503.9, "pct_chg": 14.7365}, {"date": "2025-08-26", "open": 313.6, "high": 322.8, "low": 306.0, "close": 314.0, "vol": 361919.21, "amount": 11402947.51, "pct_chg": -1.875}, {"date": "2025-08-27", "open": 320.0, "high": 345.9, "low": 311.31, "close": 325.1, "vol": 610746.35, "amount": 20077028.38, "pct_chg": 3.535}, {"date": "2025-08-28", "open": 322.87, "high": 359.58, "low": 322.45, "close": 359.03, "vol": 583916.43, "amount": 20116514.92, "pct_chg": 10.4368}, {"date": "2025-08-29", "open": 352.0, "high": 367.7, "low": 344.97, "close": 354.92, "vol": 490333.1, "amount": 17315300.34, "pct_chg": -1.1448}, {"date": "2025-09-01", "open": 372.75, "high": 413.8, "low": 364.0, "close": 406.1, "vol": 598650.89, "amount": 23173867.54, "pct_chg": 14.4202}, {"date": "2025-09-02", "open": 402.02, "high": 419.6, "low": 373.87, "close": 384.0, "vol": 784127.3, "amount": 31063167.52, "pct_chg": -5.442}, {"date": "2025-09-03", "open": 392.0, "high": 429.99, "low": 379.1, "close": 426.19, "vol": 712351.78, "amount": 28716626.62, "pct_chg": 10.987}, {"date": "2025-09-04", "open": 436.0, "high": 448.0, "low": 363.88, "close": 369.14, "vol": 939056.71, "amount": 36731803.95, "pct_chg": -13.386}, {"date": "2025-09-05", "open": 378.02, "high": 418.88, "low": 361.72, "close": 407.0, "vol": 792550.67, "amount": 30591669.08, "pct_chg": 10.2563}, {"date": "2025-09-08", "open": 394.0, "high": 394.0, "low": 344.0, "close": 369.99, "vol": 741116.48, "amount": 27097510.06, "pct_chg": -9.0934}, {"date": "2025-09-09", "open": 365.02, "high": 372.61, "low": 347.0, "close": 359.29, "vol": 480631.09, "amount": 17329017.12, "pct_chg": -2.892}, {"date": "2025-09-10", "open": 378.0, "high": 395.48, "low": 370.58, "close": 385.0, "vol": 620102.39, "amount": 23749946.61, "pct_chg": 7.1558}, {"date": "2025-09-11", "open": 402.19, "high": 443.99, "low": 402.19, "close": 439.97, "vol": 656801.63, "amount": 27786933.61, "pct_chg": 14.2779}, {"date": "2025-09-12", "open": 417.0, "high": 431.99, "low": 410.0, "close": 422.09, "vol": 472505.65, "amount": 19984616.45, "pct_chg": -4.0639}, {"date": "2025-09-15", "open": 410.0, "high": 419.97, "low": 397.64, "close": 408.02, "vol": 357525.41, "amount": 14621407.48, "pct_chg": -3.3334}, {"date": "2025-09-16", "open": 410.03, "high": 421.97, "low": 396.22, "close": 411.42, "vol": 442532.63, "amount": 17975150.67, "pct_chg": 0.8333}, {"date": "2025-09-17", "open": 405.0, "high": 412.98, "low": 391.11, "close": 406.2, "vol": 324316.21, "amount": 13067610.63, "pct_chg": -1.2688}, {"date": "2025-09-18", "open": 394.21, "high": 429.99, "low": 389.21, "close": 409.4, "vol": 561607.86, "amount": 22855123.99, "pct_chg": 0.7878}, {"date": "2025-09-19", "open": 415.4, "high": 425.0, "low": 400.03, "close": 421.5, "vol": 466535.93, "amount": 19367174.6, "pct_chg": 2.9555}, {"date": "2025-09-22", "open": 417.29, "high": 421.8, "low": 394.68, "close": 418.0, "vol": 412684.76, "amount": 16928692.92, "pct_chg": -0.8304}, {"date": "2025-09-23", "open": 447.01, "high": 457.01, "low": 418.0, "close": 434.29, "vol": 534440.36, "amount": 23278260.11, "pct_chg": 3.8971}, {"date": "2025-09-24", "open": 416.01, "high": 435.0, "low": 410.0, "close": 423.5, "vol": 393385.86, "amount": 16589365.26, "pct_chg": -2.4845}, {"date": "2025-09-25", "open": 416.01, "high": 442.96, "low": 404.0, "close": 434.6, "vol": 505591.51, "amount": 21620180.9, "pct_chg": 2.621}, {"date": "2025-09-26", "open": 429.05, "high": 442.3, "low": 413.7, "close": 413.7, "vol": 351118.15, "amount": 14918149.5, "pct_chg": -4.809}, {"date": "2025-09-29", "open": 410.12, "high": 433.17, "low": 403.09, "close": 416.75, "vol": 429059.21, "amount": 18029890.03, "pct_chg": 0.7372}, {"date": "2025-09-30", "open": 418.51, "high": 435.0, "low": 398.06, "close": 403.68, "vol": 392893.31, "amount": 16248125.25, "pct_chg": -3.1362}, {"date": "2025-10-09", "open": 419.0, "high": 426.66, "low": 397.68, "close": 398.81, "vol": 390909.46, "amount": 16122596.93, "pct_chg": -1.2064}, {"date": "2025-10-10", "open": 399.01, "high": 407.8, "low": 381.01, "close": 390.0, "vol": 384285.92, "amount": 15167250.79, "pct_chg": -2.2091}, {"date": "2025-10-13", "open": 369.0, "high": 382.0, "low": 361.8, "close": 376.99, "vol": 409313.49, "amount": 15302419.92, "pct_chg": -3.2367}, {"date": "2025-10-14", "open": 385.0, "high": 385.94, "low": 344.0, "close": 346.1, "vol": 514339.07, "amount": 18448572.39, "pct_chg": -8.1939}, {"date": "2025-10-15", "open": 345.0, "high": 357.0, "low": 337.0, "close": 354.12, "vol": 353172.53, "amount": 12275375.12, "pct_chg": 2.3172}, {"date": "2025-10-16", "open": 351.14, "high": 379.3, "low": 350.03, "close": 366.97, "vol": 342568.18, "amount": 12630929.31, "pct_chg": 3.6287}, {"date": "2025-10-17", "open": 367.17, "high": 381.91, "low": 360.0, "close": 373.6, "vol": 467636.44, "amount": 17358864.5, "pct_chg": 1.8067}, {"date": "2025-10-20", "open": 408.19, "high": 421.21, "low": 395.58, "close": 403.0, "vol": 601550.62, "amount": 24468412.27, "pct_chg": 7.8694}, {"date": "2025-10-21", "open": 410.0, "high": 451.48, "low": 405.0, "close": 441.5, "vol": 565178.65, "amount": 24436154.42, "pct_chg": 9.5533}, {"date": "2025-10-22", "open": 436.09, "high": 457.5, "low": 436.09, "close": 444.3, "vol": 397499.1, "amount": 17757275.76, "pct_chg": 0.6342}, {"date": "2025-10-23", "open": 441.08, "high": 443.0, "low": 425.7, "close": 440.88, "vol": 276011.13, "amount": 12011352.77, "pct_chg": -0.7698}, {"date": "2025-10-24", "open": 450.0, "high": 495.65, "low": 437.1, "close": 494.0, "vol": 491025.26, "amount": 23033970.65, "pct_chg": 12.0486}, {"date": "2025-10-27", "open": 503.98, "high": 515.0, "low": 495.56, "close": 508.94, "vol": 450723.89, "amount": 22787904.83, "pct_chg": 3.0243}, {"date": "2025-10-28", "open": 503.3, "high": 536.0, "low": 501.0, "close": 513.0, "vol": 417960.87, "amount": 21740189.24, "pct_chg": 0.7977}, {"date": "2025-10-29", "open": 538.01, "high": 542.01, "low": 506.16, "close": 520.72, "vol": 417271.05, "amount": 21670889.45, "pct_chg": 1.5049}, {"date": "2025-10-30", "open": 516.51, "high": 538.0, "low": 509.0, "close": 514.74, "vol": 453309.84, "amount": 23600113.53, "pct_chg": -1.1484}, {"date": "2025-10-31", "open": 503.0, "high": 509.0, "low": 472.0, "close": 473.01, "vol": 563012.79, "amount": 27346603.03, "pct_chg": -8.107}, {"date": "2025-11-03", "open": 470.67, "high": 483.4, "low": 457.51, "close": 480.0, "vol": 398408.75, "amount": 18730146.95, "pct_chg": 1.4778}, {"date": "2025-11-04", "open": 489.6, "high": 504.29, "low": 473.88, "close": 477.8, "vol": 360853.68, "amount": 17622196.97, "pct_chg": -0.4583}, {"date": "2025-11-05", "open": 462.02, "high": 480.0, "low": 458.79, "close": 477.01, "vol": 264087.51, "amount": 12390456.81, "pct_chg": -0.1653}, {"date": "2025-11-06", "open": 488.0, "high": 507.88, "low": 482.27, "close": 496.88, "vol": 373251.44, "amount": 18457495.76, "pct_chg": 4.1655}, {"date": "2025-11-07", "open": 491.0, "high": 499.79, "low": 479.0, "close": 490.05, "vol": 243099.6, "amount": 11923843.24, "pct_chg": -1.3746}, {"date": "2025-11-10", "open": 488.88, "high": 495.88, "low": 460.0, "close": 490.0, "vol": 352110.79, "amount": 16744462.63, "pct_chg": -0.0102}, {"date": "2025-11-11", "open": 493.68, "high": 499.66, "low": 464.0, "close": 468.05, "vol": 325131.12, "amount": 15621818.93, "pct_chg": -4.4796}, {"date": "2025-11-12", "open": 459.63, "high": 492.39, "low": 450.01, "close": 491.75, "vol": 423022.25, "amount": 19890723.54, "pct_chg": 5.0636}, {"date": "2025-11-13", "open": 489.28, "high": 489.28, "low": 470.01, "close": 481.0, "vol": 313317.46, "amount": 15002143.51, "pct_chg": -2.1861}, {"date": "2025-11-14", "open": 465.18, "high": 473.88, "low": 454.22, "close": 462.82, "vol": 247272.66, "amount": 11512786.15, "pct_chg": -3.7796}, {"date": "2025-11-17", "open": 475.2, "high": 488.64, "low": 468.4, "close": 483.2, "vol": 282466.26, "amount": 13512966.11, "pct_chg": 4.4034}, {"date": "2025-11-18", "open": 474.7, "high": 490.8, "low": 470.01, "close": 472.91, "vol": 240678.56, "amount": 11554982.04, "pct_chg": -2.1296}, {"date": "2025-11-19", "open": 472.43, "high": 499.7, "low": 472.0, "close": 488.6, "vol": 337865.39, "amount": 16542781.77, "pct_chg": 3.3178}, {"date": "2025-11-20", "open": 515.0, "high": 522.38, "low": 490.33, "close": 492.0, "vol": 353522.07, "amount": 17783386.64, "pct_chg": 0.6959}, {"date": "2025-11-21", "open": 472.99, "high": 483.0, "low": 460.0, "close": 464.01, "vol": 414122.8, "amount": 19479251.6, "pct_chg": -5.689}, {"date": "2025-11-24", "open": 470.0, "high": 476.99, "low": 436.96, "close": 456.8, "vol": 464258.0, "amount": 21222535.81, "pct_chg": -1.5538}, {"date": "2025-11-25", "open": 477.01, "high": 494.8, "low": 470.01, "close": 479.66, "vol": 439364.81, "amount": 21131904.34, "pct_chg": 5.0044}, {"date": "2025-11-26", "open": 475.2, "high": 556.88, "low": 470.4, "close": 543.22, "vol": 628951.48, "amount": 32975131.63, "pct_chg": 13.2511}, {"date": "2025-11-27", "open": 537.0, "high": 558.77, "low": 523.36, "close": 524.0, "vol": 437327.67, "amount": 23641332.19, "pct_chg": -3.5382}, {"date": "2025-11-28", "open": 527.2, "high": 529.8, "low": 508.6, "close": 514.5, "vol": 324657.3, "amount": 16750682.59, "pct_chg": -1.813}, {"date": "2025-12-01", "open": 524.0, "high": 546.5, "low": 515.0, "close": 538.0, "vol": 372867.05, "amount": 19884723.67, "pct_chg": 4.5675}, {"date": "2025-12-02", "open": 542.0, "high": 551.13, "low": 535.5, "close": 542.0, "vol": 271615.33, "amount": 14774407.36, "pct_chg": 0.7435}, {"date": "2025-12-03", "open": 540.54, "high": 558.58, "low": 522.11, "close": 523.73, "vol": 368327.52, "amount": 19817626.71, "pct_chg": -3.3708}, {"date": "2025-12-04", "open": 517.37, "high": 536.53, "low": 512.34, "close": 535.5, "vol": 263194.47, "amount": 13837413.1, "pct_chg": 2.2473}, {"date": "2025-12-05", "open": 539.53, "high": 545.0, "low": 525.0, "close": 537.05, "vol": 282825.91, "amount": 15166870.06, "pct_chg": 0.2894}, {"date": "2025-12-08", "open": 543.0, "high": 585.0, "low": 539.0, "close": 570.0, "vol": 408224.4, "amount": 23130085.52, "pct_chg": 6.1354}, {"date": "2025-12-09", "open": 570.09, "high": 613.0, "low": 568.54, "close": 606.0, "vol": 371293.33, "amount": 22178752.62, "pct_chg": 6.3158}, {"date": "2025-12-10", "open": 609.06, "high": 620.0, "low": 589.5, "close": 616.0, "vol": 302094.33, "amount": 18313255.43, "pct_chg": 1.6502}, {"date": "2025-12-11", "open": 610.0, "high": 627.11, "low": 585.91, "close": 586.81, "vol": 363531.25, "amount": 22007836.03, "pct_chg": -4.7386}, {"date": "2025-12-12", "open": 587.0, "high": 603.88, "low": 570.22, "close": 582.0, "vol": 468789.24, "amount": 27362453.09, "pct_chg": -0.8197}, {"date": "2025-12-15", "open": 570.0, "high": 588.0, "low": 568.0, "close": 570.86, "vol": 300987.36, "amount": 17331138.64, "pct_chg": -1.9141}, {"date": "2025-12-16", "open": 568.8, "high": 575.0, "low": 545.01, "close": 551.79, "vol": 279702.37, "amount": 15609524.94, "pct_chg": -3.3406}, {"date": "2025-12-17", "open": 557.0, "high": 592.07, "low": 556.66, "close": 589.98, "vol": 323570.08, "amount": 18602336.34, "pct_chg": 6.9211}, {"date": "2025-12-18", "open": 576.99, "high": 579.87, "low": 563.43, "close": 571.2, "vol": 241628.87, "amount": 13813326.87, "pct_chg": -3.1832}, {"date": "2025-12-19", "open": 583.34, "high": 587.0, "low": 570.28, "close": 571.7, "vol": 224429.14, "amount": 12979061.28, "pct_chg": 0.0875}, {"date": "2025-12-22", "open": 590.01, "high": 622.0, "low": 590.01, "close": 617.5, "vol": 394411.67, "amount": 23897727.83, "pct_chg": 8.0112}, {"date": "2025-12-23", "open": 625.0, "high": 628.99, "low": 614.0, "close": 621.0, "vol": 233642.01, "amount": 14498372.81, "pct_chg": 0.5668}, {"date": "2025-12-24", "open": 627.64, "high": 638.0, "low": 617.6, "close": 634.4, "vol": 235091.26, "amount": 14752690.73, "pct_chg": 2.1578}, {"date": "2025-12-25", "open": 645.0, "high": 658.8, "low": 618.41, "close": 639.8, "vol": 259387.11, "amount": 16554891.81, "pct_chg": 0.8512}, {"date": "2025-12-26", "open": 628.3, "high": 636.95, "low": 618.0, "close": 627.0, "vol": 213761.84, "amount": 13392778.8, "pct_chg": -2.0006}, {"date": "2025-12-29", "open": 627.64, "high": 633.69, "low": 612.73, "close": 618.0, "vol": 241125.83, "amount": 14961103.07, "pct_chg": -1.4354}, {"date": "2025-12-30", "open": 618.1, "high": 644.34, "low": 615.0, "close": 632.0, "vol": 261145.4, "amount": 16460770.39, "pct_chg": 2.2654}, {"date": "2025-12-31", "open": 629.0, "high": 633.0, "low": 608.0, "close": 610.0, "vol": 225604.12, "amount": 13944071.97, "pct_chg": -3.481}, {"date": "2026-01-05", "open": 621.08, "high": 627.29, "low": 600.17, "close": 623.51, "vol": 302041.57, "amount": 18658748.25, "pct_chg": 2.2148}, {"date": "2026-01-06", "open": 606.0, "high": 615.8, "low": 590.2, "close": 605.25, "vol": 335583.27, "amount": 20243859.7, "pct_chg": -2.9286}, {"date": "2026-01-07", "open": 616.8, "high": 628.0, "low": 602.0, "close": 619.6, "vol": 280014.55, "amount": 17281311.98, "pct_chg": 2.3709}, {"date": "2026-01-08", "open": 611.1, "high": 616.0, "low": 592.0, "close": 595.45, "vol": 291961.68, "amount": 17523125.45, "pct_chg": -3.8977}, {"date": "2026-01-09", "open": 575.94, "high": 595.0, "low": 561.61, "close": 583.2, "vol": 385723.37, "amount": 22201259.67, "pct_chg": -2.0573}, {"date": "2026-01-12", "open": 570.0, "high": 600.0, "low": 558.85, "close": 591.97, "vol": 383607.52, "amount": 22117906.76, "pct_chg": 1.5038}, {"date": "2026-01-13", "open": 580.8, "high": 616.6, "low": 580.01, "close": 585.76, "vol": 320559.44, "amount": 19108309.97, "pct_chg": -1.049}, {"date": "2026-01-14", "open": 595.35, "high": 600.88, "low": 567.01, "close": 593.0, "vol": 417329.94, "amount": 24433697.9, "pct_chg": 1.236}, {"date": "2026-01-15", "open": 583.2, "high": 636.99, "low": 581.02, "close": 625.02, "vol": 459038.24, "amount": 27888274.55, "pct_chg": 5.3997}, {"date": "2026-01-16", "open": 635.97, "high": 645.0, "low": 615.02, "close": 617.0, "vol": 372723.76, "amount": 23373957.06, "pct_chg": -1.2832}, {"date": "2026-01-19", "open": 605.0, "high": 619.0, "low": 602.57, "close": 605.5, "vol": 223078.62, "amount": 13561463.23, "pct_chg": -1.8639}, {"date": "2026-01-20", "open": 605.52, "high": 608.0, "low": 580.0, "close": 585.0, "vol": 262900.35, "amount": 15451090.11, "pct_chg": -3.3856}, {"date": "2026-01-21", "open": 586.24, "high": 599.66, "low": 581.0, "close": 581.9, "vol": 250959.0, "amount": 14836515.56, "pct_chg": -0.5299}, {"date": "2026-01-22", "open": 590.08, "high": 624.5, "low": 585.0, "close": 621.0, "vol": 401944.25, "amount": 24274588.61, "pct_chg": 6.7194}, {"date": "2026-01-23", "open": 614.0, "high": 615.0, "low": 580.16, "close": 585.0, "vol": 396560.41, "amount": 23458779.41, "pct_chg": -5.7971}, {"date": "2026-01-26", "open": 580.0, "high": 598.0, "low": 572.01, "close": 589.8, "vol": 260881.15, "amount": 15300491.05, "pct_chg": 0.8205}, {"date": "2026-01-27", "open": 589.96, "high": 630.0, "low": 586.7, "close": 615.6, "vol": 387286.71, "amount": 23794065.73, "pct_chg": 4.3744}, {"date": "2026-01-28", "open": 632.0, "high": 644.98, "low": 623.0, "close": 628.0, "vol": 329263.75, "amount": 20818996.21, "pct_chg": 2.0143}, {"date": "2026-01-29", "open": 637.0, "high": 637.95, "low": 610.11, "close": 613.85, "vol": 248940.4, "amount": 15437115.01, "pct_chg": -2.2532}, {"date": "2026-01-30", "open": 616.2, "high": 653.58, "low": 605.93, "close": 649.0, "vol": 357592.0, "amount": 22650812.27, "pct_chg": 5.7262}, {"date": "2026-02-02", "open": 635.01, "high": 658.58, "low": 591.0, "close": 591.0, "vol": 559980.48, "amount": 34642172.76, "pct_chg": -8.9368}, {"date": "2026-02-03", "open": 607.0, "high": 618.8, "low": 576.0, "close": 589.7, "vol": 429180.19, "amount": 25546318.14, "pct_chg": -0.22}, {"date": "2026-02-04", "open": 570.0, "high": 574.55, "low": 525.13, "close": 560.0, "vol": 527210.01, "amount": 29004521.61, "pct_chg": -5.0365}, {"date": "2026-02-05", "open": 561.01, "high": 577.75, "low": 556.01, "close": 561.99, "vol": 318675.15, "amount": 18014061.31, "pct_chg": 0.3554}, {"date": "2026-02-06", "open": 548.11, "high": 561.88, "low": 530.3, "close": 540.01, "vol": 328675.9, "amount": 17909389.39, "pct_chg": -3.9111}, {"date": "2026-02-09", "open": 561.0, "high": 573.99, "low": 550.12, "close": 565.99, "vol": 366633.37, "amount": 20565541.89, "pct_chg": 4.811}, {"date": "2026-02-10", "open": 561.55, "high": 573.68, "low": 555.5, "close": 555.71, "vol": 217158.25, "amount": 12239667.57, "pct_chg": -1.8163}, {"date": "2026-02-11", "open": 551.01, "high": 554.0, "low": 522.53, "close": 531.91, "vol": 397135.51, "amount": 21161447.64, "pct_chg": -4.2828}, {"date": "2026-02-12", "open": 535.0, "high": 546.38, "low": 523.38, "close": 527.46, "vol": 301786.11, "amount": 16055660.08, "pct_chg": -0.8366}, {"date": "2026-02-13", "open": 524.0, "high": 543.8, "low": 515.0, "close": 531.0, "vol": 260436.1, "amount": 13816376.82, "pct_chg": 0.6711}, {"date": "2026-02-24", "open": 542.0, "high": 572.02, "low": 522.0, "close": 554.0, "vol": 356557.53, "amount": 19693436.14, "pct_chg": 4.3315}, {"date": "2026-02-25", "open": 550.0, "high": 569.86, "low": 548.0, "close": 566.07, "vol": 214792.09, "amount": 11999241.09, "pct_chg": 2.1787}, {"date": "2026-02-26", "open": 566.07, "high": 574.0, "low": 559.0, "close": 572.22, "vol": 252799.91, "amount": 14340448.87, "pct_chg": 1.0864}, {"date": "2026-02-27", "open": 555.0, "high": 559.98, "low": 531.11, "close": 534.0, "vol": 347124.7, "amount": 18806220.5, "pct_chg": -6.6792}, {"date": "2026-03-02", "open": 520.0, "high": 580.0, "low": 520.0, "close": 570.58, "vol": 493103.42, "amount": 27557516.45, "pct_chg": 6.8502}, {"date": "2026-03-03", "open": 570.8, "high": 599.04, "low": 563.28, "close": 563.8, "vol": 393101.0, "amount": 22869564.25, "pct_chg": -1.1883}, {"date": "2026-03-04", "open": 554.02, "high": 563.5, "low": 536.5, "close": 539.0, "vol": 307429.45, "amount": 16777788.85, "pct_chg": -4.3987}, {"date": "2026-03-05", "open": 556.0, "high": 585.0, "low": 552.6, "close": 557.0, "vol": 379003.6, "amount": 21444655.5, "pct_chg": 3.3395}, {"date": "2026-03-06", "open": 553.0, "high": 559.98, "low": 537.06, "close": 545.48, "vol": 219667.67, "amount": 12028188.49, "pct_chg": -2.0682}, {"date": "2026-03-09", "open": 520.1, "high": 528.3, "low": 506.0, "close": 525.99, "vol": 314743.15, "amount": 16230653.69, "pct_chg": -3.573}, {"date": "2026-03-10", "open": 540.0, "high": 548.98, "low": 530.02, "close": 547.0, "vol": 283094.14, "amount": 15348948.11, "pct_chg": 3.9944}, {"date": "2026-03-11", "open": 557.0, "high": 568.9, "low": 553.0, "close": 554.68, "vol": 238971.7, "amount": 13412042.2, "pct_chg": 1.404}, {"date": "2026-03-12", "open": 557.25, "high": 563.58, "low": 528.5, "close": 534.8, "vol": 239117.26, "amount": 12905792.46, "pct_chg": -3.584}, {"date": "2026-03-13", "open": 526.5, "high": 548.88, "low": 525.01, "close": 542.02, "vol": 211981.69, "amount": 11483224.12, "pct_chg": 1.35}, {"date": "2026-03-16", "open": 549.05, "high": 565.0, "low": 540.32, "close": 561.7, "vol": 274319.81, "amount": 15210952.03, "pct_chg": 3.6309}, {"date": "2026-03-17", "open": 570.0, "high": 577.88, "low": 539.0, "close": 543.0, "vol": 300409.84, "amount": 16803741.8, "pct_chg": -3.3292}, {"date": "2026-03-18", "open": 553.86, "high": 582.05, "low": 550.0, "close": 580.0, "vol": 377804.87, "amount": 21435555.27, "pct_chg": 6.814}, {"date": "2026-03-19", "open": 580.0, "high": 592.8, "low": 569.9, "close": 575.2, "vol": 331407.56, "amount": 19280585.87, "pct_chg": -0.8276}, {"date": "2026-03-20", "open": 605.0, "high": 632.72, "low": 604.1, "close": 612.0, "vol": 538539.42, "amount": 33344122.51, "pct_chg": 6.3978}, {"date": "2026-03-23", "open": 590.31, "high": 618.1, "low": 585.0, "close": 599.62, "vol": 378519.91, "amount": 22741347.14, "pct_chg": -2.0229}, {"date": "2026-03-24", "open": 599.0, "high": 605.0, "low": 577.0, "close": 603.19, "vol": 282635.65, "amount": 16716920.53, "pct_chg": 0.5954}, {"date": "2026-03-25", "open": 625.0, "high": 635.0, "low": 616.05, "close": 628.4, "vol": 335631.26, "amount": 21048050.38, "pct_chg": 4.1794}, {"date": "2026-03-26", "open": 626.89, "high": 645.0, "low": 612.83, "close": 614.2, "vol": 262769.23, "amount": 16491318.31, "pct_chg": -2.2597}, {"date": "2026-03-27", "open": 598.85, "high": 609.88, "low": 588.66, "close": 598.0, "vol": 224326.03, "amount": 13421963.4, "pct_chg": -2.6376}, {"date": "2026-03-30", "open": 585.0, "high": 595.58, "low": 579.0, "close": 589.08, "vol": 209254.8, "amount": 12283293.32, "pct_chg": -1.4916}, {"date": "2026-03-31", "open": 571.0, "high": 585.9, "low": 555.0, "close": 569.41, "vol": 261202.31, "amount": 14942137.04, "pct_chg": -3.3391}, {"date": "2026-04-01", "open": 591.0, "high": 602.0, "low": 581.2, "close": 601.87, "vol": 255404.72, "amount": 15121134.06, "pct_chg": 5.7006}, {"date": "2026-04-02", "open": 593.01, "high": 596.77, "low": 578.69, "close": 582.0, "vol": 177310.14, "amount": 10393303.26, "pct_chg": -3.3014}, {"date": "2026-04-03", "open": 600.0, "high": 625.0, "low": 594.35, "close": 606.52, "vol": 290271.06, "amount": 17694513.7, "pct_chg": 4.2131}, {"date": "2026-04-07", "open": 608.0, "high": 636.66, "low": 597.7, "close": 619.53, "vol": 239030.65, "amount": 14668397.05, "pct_chg": 2.145}, {"date": "2026-04-08", "open": 653.53, "high": 688.26, "low": 643.0, "close": 688.14, "vol": 396629.74, "amount": 26479882.61, "pct_chg": 11.0745}, {"date": "2026-04-09", "open": 682.0, "high": 700.0, "low": 678.01, "close": 693.02, "vol": 249619.27, "amount": 17248692.69, "pct_chg": 0.7092}, {"date": "2026-04-10", "open": 700.0, "high": 743.04, "low": 694.01, "close": 734.65, "vol": 330800.75, "amount": 23842833.15, "pct_chg": 6.007}, {"date": "2026-04-13", "open": 738.8, "high": 744.0, "low": 714.23, "close": 738.0, "vol": 228876.18, "amount": 16730510.5, "pct_chg": 0.456}, {"date": "2026-04-14", "open": 750.0, "high": 786.22, "low": 748.78, "close": 773.0, "vol": 292668.36, "amount": 22475999.26, "pct_chg": 4.7425}, {"date": "2026-04-15", "open": 787.0, "high": 808.83, "low": 766.0, "close": 779.98, "vol": 323452.47, "amount": 25441092.94, "pct_chg": 0.903}, {"date": "2026-04-16", "open": 772.37, "high": 810.11, "low": 762.35, "close": 809.61, "vol": 286570.12, "amount": 22749930.92, "pct_chg": 3.7988}, {"date": "2026-04-17", "open": 841.0, "high": 865.0, "low": 820.24, "close": 851.0, "vol": 398571.61, "amount": 33630034.47, "pct_chg": 5.1123}, {"date": "2026-04-20", "open": 849.0, "high": 878.98, "low": 840.58, "close": 850.0, "vol": 272631.13, "amount": 23357063.77, "pct_chg": -0.1175}, {"date": "2026-04-21", "open": 849.75, "high": 868.0, "low": 839.0, "close": 864.86, "vol": 251138.02, "amount": 21433791.33, "pct_chg": 1.7482}, {"date": "2026-04-22", "open": 859.3, "high": 893.2, "low": 854.0, "close": 886.62, "vol": 294382.93, "amount": 25705226.81, "pct_chg": 2.516}, {"date": "2026-04-23", "open": 890.0, "high": 919.99, "low": 877.78, "close": 897.0, "vol": 309869.4, "amount": 27877944.6, "pct_chg": 1.1707}, {"date": "2026-04-24", "open": 900.25, "high": 915.0, "low": 854.53, "close": 886.99, "vol": 383884.41, "amount": 33962426.84, "pct_chg": -1.1159}, {"date": "2026-04-27", "open": 899.0, "high": 900.0, "low": 854.0, "close": 857.03, "vol": 318148.71, "amount": 27543690.27, "pct_chg": -3.3777}, {"date": "2026-04-28", "open": 854.0, "high": 854.0, "low": 821.0, "close": 825.0, "vol": 295109.05, "amount": 24518220.81, "pct_chg": -3.7373}, {"date": "2026-04-29", "open": 816.23, "high": 863.0, "low": 816.23, "close": 846.0, "vol": 251730.87, "amount": 21221971.38, "pct_chg": 2.5455}, {"date": "2026-04-30", "open": 863.66, "high": 874.65, "low": 845.0, "close": 857.5, "vol": 212709.64, "amount": 18256407.62, "pct_chg": 1.4793}, {"date": "2026-05-06", "open": 888.5, "high": 889.0, "low": 840.45, "close": 856.0, "vol": 309385.72, "amount": 26756822.15, "pct_chg": -0.1749}, {"date": "2026-05-07", "open": 858.0, "high": 889.15, "low": 835.0, "close": 877.47, "vol": 277190.1, "amount": 23995585.89, "pct_chg": 2.5082}, {"date": "2026-05-08", "open": 864.95, "high": 898.95, "low": 861.56, "close": 886.0, "vol": 197640.77, "amount": 17406542.43, "pct_chg": 0.9721}, {"date": "2026-05-11", "open": 889.06, "high": 946.79, "low": 870.0, "close": 940.13, "vol": 322655.43, "amount": 29399331.29, "pct_chg": 6.1095}, {"date": "2026-05-12", "open": 961.0, "high": 1022.9, "low": 960.0, "close": 1017.99, "vol": 345421.36, "amount": 34442619.23, "pct_chg": 8.2818}, {"date": "2026-05-13", "open": 999.68, "high": 1052.2, "low": 991.12, "close": 1049.2, "vol": 260005.33, "amount": 26467945.09, "pct_chg": 3.0658}, {"date": "2026-05-14", "open": 1065.0, "high": 1088.88, "low": 1025.1, "close": 1078.0, "vol": 300571.34, "amount": 31835259.1, "pct_chg": 2.7449}, {"date": "2026-05-15", "open": 1068.99, "high": 1099.87, "low": 1034.0, "close": 1049.87, "vol": 276252.8, "amount": 29275322.89, "pct_chg": -2.6095}, {"date": "2026-05-18", "open": 1030.03, "high": 1075.0, "low": 1030.03, "close": 1045.0, "vol": 243132.05, "amount": 25546322.52, "pct_chg": -0.4639}, {"date": "2026-05-19", "open": 1026.0, "high": 1037.38, "low": 988.88, "close": 1030.0, "vol": 272749.08, "amount": 27528008.86, "pct_chg": -1.4354}, {"date": "2026-05-20", "open": 1019.11, "high": 1071.0, "low": 1019.11, "close": 1037.0, "vol": 225973.22, "amount": 23581065.53, "pct_chg": 0.6796}, {"date": "2026-05-21", "open": 1060.0, "high": 1065.0, "low": 993.34, "close": 993.34, "vol": 237726.01, "amount": 24395401.28, "pct_chg": -4.2102}, {"date": "2026-05-22", "open": 1010.04, "high": 1044.87, "low": 1006.18, "close": 1037.98, "vol": 209337.69, "amount": 21509318.91, "pct_chg": 4.4939}, {"date": "2026-05-25", "open": 1054.99, "high": 1094.98, "low": 1025.55, "close": 1093.0, "vol": 250760.89, "amount": 26633292.54, "pct_chg": 5.3007}, {"date": "2026-05-26", "open": 1079.0, "high": 1110.0, "low": 1076.0, "close": 1103.0, "vol": 234391.09, "amount": 25717381.41, "pct_chg": 0.9149}, {"date": "2026-05-27", "open": 1090.0, "high": 1147.0, "low": 1088.67, "close": 1111.37, "vol": 250688.11, "amount": 28064035.0, "pct_chg": 0.7588}, {"date": "2026-05-28", "open": 1100.0, "high": 1199.79, "low": 1085.56, "close": 1197.99, "vol": 287465.13, "amount": 32911837.68, "pct_chg": 7.794}, {"date": "2026-05-29", "open": 1190.0, "high": 1209.99, "low": 1155.0, "close": 1161.16, "vol": 287267.95, "amount": 33891957.43, "pct_chg": -3.0743}, {"date": "2026-06-01", "open": 1161.0, "high": 1183.61, "low": 1113.9, "close": 1130.0, "vol": 269781.89, "amount": 30968403.45, "pct_chg": -2.6835}, {"date": "2026-06-02", "open": 1153.6, "high": 1205.58, "low": 1140.01, "close": 1191.81, "vol": 290063.42, "amount": 34167017.42, "pct_chg": 5.4699}, {"date": "2026-06-03", "open": 1220.0, "high": 1320.0, "low": 1220.0, "close": 1275.0, "vol": 345250.76, "amount": 43881189.3, "pct_chg": 6.9801}, {"date": "2026-06-04", "open": 1250.0, "high": 1290.0, "low": 1241.36, "close": 1280.0, "vol": 217142.12, "amount": 27594721.47, "pct_chg": 0.3922}, {"date": "2026-06-05", "open": 1273.2, "high": 1301.51, "low": 1160.0, "close": 1179.99, "vol": 474740.88, "amount": 58324832.7, "pct_chg": -7.8133}, {"date": "2026-06-08", "open": 1132.79, "high": 1179.45, "low": 1132.0, "close": 1154.99, "vol": 336119.84, "amount": 38923878.72, "pct_chg": -2.1187}, {"date": "2026-06-09", "open": 1140.97, "high": 1196.16, "low": 1126.9, "close": 1180.0, "vol": 398930.37, "amount": 46676010.46, "pct_chg": 2.1654}, {"date": "2026-06-10", "open": 1150.0, "high": 1174.0, "low": 1128.8, "close": 1147.0, "vol": 228965.3, "amount": 26382501.76, "pct_chg": -2.7966}, {"date": "2026-06-11", "open": 1136.0, "high": 1174.9, "low": 1093.0, "close": 1124.0, "vol": 305923.59, "amount": 34558724.43, "pct_chg": -2.0052}, {"date": "2026-06-12", "open": 1182.0, "high": 1188.5, "low": 1128.18, "close": 1149.0, "vol": 346850.7, "amount": 40003007.25, "pct_chg": 2.2242}, {"date": "2026-06-15", "open": 1175.0, "high": 1245.0, "low": 1122.0, "close": 1245.0, "vol": 342237.42, "amount": 40751494.52, "pct_chg": 8.3551}, {"date": "2026-06-16", "open": 1240.0, "high": 1273.68, "low": 1232.46, "close": 1248.09, "vol": 232821.86, "amount": 29091725.56, "pct_chg": 0.2482}, {"date": "2026-06-17", "open": 1228.0, "high": 1276.13, "low": 1220.05, "close": 1276.11, "vol": 217562.42, "amount": 27272022.89, "pct_chg": 2.245}, {"date": "2026-06-18", "open": 1270.0, "high": 1368.5, "low": 1268.73, "close": 1367.88, "vol": 285516.16, "amount": 38176552.7, "pct_chg": 7.1914}, {"date": "2026-06-22", "open": 1367.78, "high": 1416.88, "low": 1343.38, "close": 1382.33, "vol": 280332.73, "amount": 38643675.15, "pct_chg": 1.0564}, {"date": "2026-06-23", "open": 1395.0, "high": 1395.0, "low": 1300.0, "close": 1310.01, "vol": 291773.35, "amount": 38963677.9, "pct_chg": -5.2317}, {"date": "2026-06-24", "open": 1313.61, "high": 1344.88, "low": 1282.15, "close": 1312.18, "vol": 262257.43, "amount": 34437448.05, "pct_chg": 0.1656}, {"date": "2026-06-25", "open": 1326.0, "high": 1345.09, "low": 1280.02, "close": 1323.4, "vol": 376090.48, "amount": 49655189.34, "pct_chg": 0.8551}, {"date": "2026-06-26", "open": 1296.0, "high": 1296.94, "low": 1235.13, "close": 1253.89, "vol": 352810.98, "amount": 44480805.08, "pct_chg": -5.2524}, {"date": "2026-06-29", "open": 1239.0, "high": 1264.21, "low": 1169.49, "close": 1220.0, "vol": 352899.11, "amount": 42631770.35, "pct_chg": -2.7028}, {"date": "2026-06-30", "open": 1223.01, "high": 1295.6, "low": 1218.21, "close": 1270.0, "vol": 276782.91, "amount": 34960563.6, "pct_chg": 4.0984}, {"date": "2026-07-01", "open": 1263.5, "high": 1315.57, "low": 1208.0, "close": 1223.17, "vol": 271557.1, "amount": 34256250.27, "pct_chg": -3.6874}, {"date": "2026-07-02", "open": 1160.0, "high": 1198.0, "low": 1127.4, "close": 1143.0, "vol": 317620.24, "amount": 36721292.93, "pct_chg": -6.5543}, {"date": "2026-07-03", "open": 1130.0, "high": 1188.01, "low": 1115.0, "close": 1116.0, "vol": 328617.91, "amount": 37702362.95, "pct_chg": -2.3622}];
+
+        // ==================== 工具函数 ====================
+        function formatNumber(num, decimals = 2) {
+            if (num === null || num === undefined || isNaN(num)) return '-';
+            return num.toFixed(decimals);
+        }
+
+        function formatPercent(num) {
+            if (num === null || num === undefined || isNaN(num)) return '-';
+            return (num >= 0 ? '+' : '') + num.toFixed(2) + '%';
+        }
+
+        function formatVolume(num) {
+            if (num === null || num === undefined || isNaN(num)) return '-';
+            if (num >= 100000000) return (num / 100000000).toFixed(2) + '亿';
+            if (num >= 10000) return (num / 10000).toFixed(2) + '万';
+            return num.toFixed(0);
+        }
+
+        // EMA 计算
+        function ema(data, span) {
+            const multiplier = 2 / (span + 1);
+            const result = [];
+            let prevEma = null;
+            for (let i = 0; i < data.length; i++) {
+                if (prevEma === null) {
+                    prevEma = data[i];
+                } else {
+                    prevEma = (data[i] - prevEma) * multiplier + prevEma;
+                }
+                result.push(prevEma);
+            }
+            return result;
+        }
+
+        // 简单移动平均
+        function sma(data, window) {
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < window - 1) {
+                    result.push(null);
+                    continue;
+                }
+                let sum = 0;
+                for (let j = 0; j < window; j++) {
+                    sum += data[i - j];
+                }
+                result.push(sum / window);
+            }
+            return result;
+        }
+
+        // 标准差
+        function stdDev(data, window) {
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < window - 1) {
+                    result.push(null);
+                    continue;
+                }
+                let sum = 0, sumSq = 0;
+                for (let j = 0; j < window; j++) {
+                    sum += data[i - j];
+                    sumSq += data[i - j] * data[i - j];
+                }
+                const mean = sum / window;
+                result.push(Math.sqrt(sumSq / window - mean * mean));
+            }
+            return result;
+        }
+
+        // 一阶差分
+        function diff(data, periods = 1) {
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < periods) {
+                    result.push(null);
+                } else {
+                    result.push(data[i] - data[i - periods]);
+                }
+            }
+            return result;
+        }
+
+        // 符号函数
+        function sign(x) {
+            if (x > 0) return 1;
+            if (x < 0) return -1;
+            return 0;
+        }
+
+        // RSI 计算（Wilder 平滑法）
+        function calculateRSI(close, period) {
+            const delta = diff(close, 1);
+            const gains = delta.map(d => d === null ? null : Math.max(d, 0));
+            const losses = delta.map(d => d === null ? null : Math.max(-d, 0));
+
+            const rsi = [];
+            let avgGain = null, avgLoss = null;
+            for (let i = 0; i < gains.length; i++) {
+                if (gains[i] === null) {
+                    rsi.push(null);
+                    continue;
+                }
+                if (avgGain === null) {
+                    // 初始化：第一个可用点
+                    if (i >= period) {
+                        let sumGain = 0, sumLoss = 0;
+                        for (let j = 0; j < period; j++) {
+                            sumGain += gains[i - j];
+                            sumLoss += losses[i - j];
+                        }
+                        avgGain = sumGain / period;
+                        avgLoss = sumLoss / period;
+                    } else {
+                        rsi.push(null);
+                        continue;
+                    }
+                } else {
+                    avgGain = (avgGain * (period - 1) + gains[i]) / period;
+                    avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+                }
+                if (avgLoss === 0) {
+                    rsi.push(100);
+                } else {
+                    const rs = avgGain / avgLoss;
+                    rsi.push(100 - 100 / (1 + rs));
+                }
+            }
+            return rsi;
+        }
+
+        // MACD 计算
+        function calculateMACD(close, fast, slow, signal) {
+            const emaFast = ema(close, fast);
+            const emaSlow = ema(close, slow);
+            const dif = emaFast.map((v, i) => v - emaSlow[i]);
+            const dea = ema(dif, signal);
+            const hist = dif.map((v, i) => 2 * (v - dea[i]));
+            return { dif, dea, hist };
+        }
+
+        // Bollinger Bands 计算
+        function calculateBollinger(close, window, numStd) {
+            const mid = sma(close, window);
+            const std = stdDev(close, window);
+            const upper = mid.map((m, i) => m === null ? null : m + numStd * std[i]);
+            const lower = mid.map((m, i) => m === null ? null : m - numStd * std[i]);
+            return { mid, upper, lower };
+        }
+
+        // WorldQuant Alpha 计算
+        function calculateAlpha12(df) {
+            const vol = df.map(d => d.vol);
+            const close = df.map(d => d.close);
+            const deltaVol = diff(vol, 1);
+            const deltaClose = diff(close, 1);
+            return deltaVol.map((dv, i) => (dv === null ? null : sign(dv) * (-1 * deltaClose[i])));
+        }
+
+        function calculateAlpha101(df) {
+            return df.map(d => (d.close - d.open) / ((d.high - d.low) + 0.001));
+        }
+
+        // ==================== 图表渲染 ====================
+        const chartInstances = {};
+
+        function getDates() {
+            return STOCK_DATA.map(d => d.date);
+        }
+
+        function getCloses() {
+            return STOCK_DATA.map(d => d.close);
+        }
+
+        function commonLayout(title, xTitle, yTitle) {
+            return {
+                title: {
+                    text: title,
+                    font: { size: 16, color: '#1e293b', family: 'Inter' }
+                },
+                xaxis: {
+                    title: xTitle,
+                    gridcolor: '#e2e8f0',
+                    showgrid: true
+                },
+                yaxis: {
+                    title: yTitle,
+                    gridcolor: '#e2e8f0',
+                    showgrid: true
+                },
+                paper_bgcolor: '#ffffff',
+                plot_bgcolor: '#ffffff',
+                font: { family: 'Inter, sans-serif', color: '#1e293b' },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'bottom',
+                    y: 1.02,
+                    xanchor: 'right',
+                    x: 1
+                },
+                margin: { l: 60, r: 40, t: 80, b: 60 }
+            };
+        }
+
+        function renderOverview() {
+            const dates = getDates();
+            const trace = {
+                x: dates,
+                open: STOCK_DATA.map(d => d.open),
+                high: STOCK_DATA.map(d => d.high),
+                low: STOCK_DATA.map(d => d.low),
+                close: STOCK_DATA.map(d => d.close),
+                type: 'candlestick',
+                name: 'K线',
+                increasing: { line: { color: '#ef4444' }, fillcolor: '#ef4444' },
+                decreasing: { line: { color: '#22c55e' }, fillcolor: '#22c55e' }
+            };
+
+            const volTrace = {
+                x: dates,
+                y: STOCK_DATA.map(d => d.vol),
+                type: 'bar',
+                name: '成交量',
+                marker: {
+                    color: STOCK_DATA.map((d, i) => {
+                        if (i === 0) return '#94a3b8';
+                        return d.close >= STOCK_DATA[i - 1].close ? '#ef4444' : '#22c55e';
+                    })
+                },
+                yaxis: 'y2'
+            };
+
+            const layout = {
+                ...commonLayout('中际旭创 K线图与成交量', '日期', '价格 (元)'),
+                yaxis2: {
+                    title: '成交量',
+                    overlaying: 'y',
+                    side: 'right',
+                    showgrid: false
+                },
+                grid: { rows: 2, columns: 1, pattern: 'independent', roworder: 'top to bottom' },
+                xaxis: { domain: [0, 1], rangeslider: { visible: false } },
+                xaxis2: { domain: [0, 1], anchor: 'y2' },
+                yaxis: { domain: [0.35, 1] },
+                yaxis2: { domain: [0, 0.25], anchor: 'x2' }
+            };
+
+            Plotly.newPlot('chart-overview', [trace, volTrace], layout, { responsive: true });
+            chartInstances['chart-overview'] = true;
+        }
+
+        function renderRSI() {
+            const period = parseInt(document.getElementById('rsi-period').value);
+            const overbought = parseInt(document.getElementById('rsi-overbought').value);
+            const oversold = parseInt(document.getElementById('rsi-oversold').value);
+            const dates = getDates();
+            const rsi = calculateRSI(getCloses(), period);
+
+            const trace = {
+                x: dates,
+                y: rsi,
+                type: 'scatter',
+                mode: 'lines',
+                name: `RSI(${period})`,
+                line: { color: '#9333ea', width: 1.5 }
+            };
+
+            const upperLine = {
+                x: dates,
+                y: Array(dates.length).fill(overbought),
+                type: 'scatter',
+                mode: 'lines',
+                name: `超买线(${overbought})`,
+                line: { color: '#ef4444', width: 1, dash: 'dash' }
+            };
+
+            const middleLine = {
+                x: dates,
+                y: Array(dates.length).fill(50),
+                type: 'scatter',
+                mode: 'lines',
+                name: '中线(50)',
+                line: { color: '#94a3b8', width: 1, dash: 'dot' }
+            };
+
+            const lowerLine = {
+                x: dates,
+                y: Array(dates.length).fill(oversold),
+                type: 'scatter',
+                mode: 'lines',
+                name: `超卖线(${oversold})`,
+                line: { color: '#22c55e', width: 1, dash: 'dash' }
+            };
+
+            const layout = {
+                ...commonLayout('RSI 相对强弱指数', '日期', 'RSI'),
+                yaxis: { range: [0, 100] }
+            };
+
+            Plotly.newPlot('chart-rsi', [trace, upperLine, middleLine, lowerLine], layout, { responsive: true });
+            chartInstances['chart-rsi'] = true;
+        }
+
+        function renderMACD() {
+            const fast = parseInt(document.getElementById('macd-fast').value);
+            const slow = parseInt(document.getElementById('macd-slow').value);
+            const signal = parseInt(document.getElementById('macd-signal').value);
+            const dates = getDates();
+            const { dif, dea, hist } = calculateMACD(getCloses(), fast, slow, signal);
+
+            const histColors = hist.map(v => v >= 0 ? '#ef4444' : '#22c55e');
+
+            const histTrace = {
+                x: dates,
+                y: hist,
+                type: 'bar',
+                name: 'MACD柱',
+                marker: { color: histColors },
+                width: 1.5
+            };
+
+            const difTrace = {
+                x: dates,
+                y: dif,
+                type: 'scatter',
+                mode: 'lines',
+                name: `DIF(${fast})`,
+                line: { color: '#f97316', width: 1.5 }
+            };
+
+            const deaTrace = {
+                x: dates,
+                y: dea,
+                type: 'scatter',
+                mode: 'lines',
+                name: `DEA(${slow},${signal})`,
+                line: { color: '#2563eb', width: 1.5 }
+            };
+
+            const zeroLine = {
+                x: dates,
+                y: Array(dates.length).fill(0),
+                type: 'scatter',
+                mode: 'lines',
+                name: '零轴',
+                line: { color: '#333333', width: 0.5 }
+            };
+
+            const layout = commonLayout('MACD 指数平滑异同移动平均线', '日期', 'MACD');
+            Plotly.newPlot('chart-macd', [histTrace, difTrace, deaTrace, zeroLine], layout, { responsive: true });
+            chartInstances['chart-macd'] = true;
+        }
+
+        function renderBollinger() {
+            const window = parseInt(document.getElementById('boll-window').value);
+            const numStd = parseFloat(document.getElementById('boll-std').value);
+            const dates = getDates();
+            const closes = getCloses();
+            const { mid, upper, lower } = calculateBollinger(closes, window, numStd);
+
+            const priceTrace = {
+                x: dates,
+                y: closes,
+                type: 'scatter',
+                mode: 'lines',
+                name: '收盘价',
+                line: { color: '#334155', width: 1.5 }
+            };
+
+            const midTrace = {
+                x: dates,
+                y: mid,
+                type: 'scatter',
+                mode: 'lines',
+                name: `中轨(${window})`,
+                line: { color: '#f97316', width: 1, dash: 'dash' }
+            };
+
+            const upperTrace = {
+                x: dates,
+                y: upper,
+                type: 'scatter',
+                mode: 'lines',
+                name: `上轨(+${numStd}σ)`,
+                line: { color: '#ef4444', width: 1, dash: 'dash' }
+            };
+
+            const lowerTrace = {
+                x: dates,
+                y: lower,
+                type: 'scatter',
+                mode: 'lines',
+                name: `下轨(-${numStd}σ)`,
+                line: { color: '#22c55e', width: 1, dash: 'dash' }
+            };
+
+            const bandFill = {
+                x: [...dates, ...dates.slice().reverse()],
+                y: [...upper, ...lower.slice().reverse()],
+                fill: 'toself',
+                fillcolor: 'rgba(59, 130, 246, 0.08)',
+                line: { color: 'transparent' },
+                name: '布林带',
+                hoverinfo: 'skip'
+            };
+
+            const layout = commonLayout('布林带 Bollinger Bands', '日期', '价格 (元)');
+            Plotly.newPlot('chart-bollinger', [bandFill, priceTrace, midTrace, upperTrace, lowerTrace], layout, { responsive: true });
+            chartInstances['chart-bollinger'] = true;
+        }
+
+        function renderWorldQuant() {
+            const dates = getDates();
+            const alpha12 = calculateAlpha12(STOCK_DATA);
+            const alpha101 = calculateAlpha101(STOCK_DATA);
+
+            // Alpha12
+            const colors12 = alpha12.map(v => v >= 0 ? '#ef4444' : '#22c55e');
+            Plotly.newPlot('chart-alpha12', [{
+                x: dates,
+                y: alpha12,
+                type: 'bar',
+                name: 'Alpha#12',
+                marker: { color: colors12 },
+                width: 1.5
+            }, {
+                x: dates,
+                y: Array(dates.length).fill(0),
+                type: 'scatter',
+                mode: 'lines',
+                name: '零轴',
+                line: { color: '#333333', width: 0.5 }
+            }], commonLayout('WorldQuant Alpha#12 量价背离因子', '日期', 'Alpha值'), { responsive: true });
+
+            // Alpha101
+            Plotly.newPlot('chart-alpha101', [{
+                x: dates,
+                y: alpha101,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Alpha#101',
+                fill: 'tozeroy',
+                fillcolor: 'rgba(59, 130, 246, 0.2)',
+                line: { color: '#3b82f6', width: 1.5 }
+            }, {
+                x: dates,
+                y: Array(dates.length).fill(0),
+                type: 'scatter',
+                mode: 'lines',
+                name: '零轴',
+                line: { color: '#333333', width: 0.5 }
+            }], {
+                ...commonLayout('WorldQuant Alpha#101 日内价格位置因子', '日期', 'Alpha值'),
+                yaxis: { range: [-1, 1] }
+            }, { responsive: true });
+        }
+
+        // ==================== 页面交互 ====================
+        function updateHeaderStats() {
+            const first = STOCK_DATA[0];
+            const last = STOCK_DATA[STOCK_DATA.length - 1];
+            const totalReturn = (last.close / first.close - 1) * 100;
+            const avgVol = STOCK_DATA.reduce((sum, d) => sum + d.vol, 0) / STOCK_DATA.length;
+
+            document.getElementById('stat-range').textContent = `${first.date} ~ ${last.date}`;
+            document.getElementById('stat-days').textContent = STOCK_DATA.length;
+            document.getElementById('stat-close').textContent = `¥${last.close.toFixed(2)}`;
+            document.getElementById('stat-return').textContent = formatPercent(totalReturn);
+            document.getElementById('stat-return').style.color = totalReturn >= 0 ? '#ef4444' : '#22c55e';
+            document.getElementById('stat-vol').textContent = formatVolume(avgVol);
+        }
+
+        function updateDataSummary() {
+            const closes = getCloses();
+            const vols = STOCK_DATA.map(d => d.vol);
+            const pctChgs = STOCK_DATA.map(d => d.pct_chg);
+            const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+            const std = arr => Math.sqrt(arr.reduce((sq, n) => sq + Math.pow(n - mean(arr), 2), 0) / arr.length);
+            const max = arr => Math.max(...arr);
+            const min = arr => Math.min(...arr);
+
+            const items = [
+                { label: '收盘价均值', value: `¥${formatNumber(mean(closes))}` },
+                { label: '收盘价标准差', value: `¥${formatNumber(std(closes))}` },
+                { label: '收盘价最大值', value: `¥${formatNumber(max(closes))}` },
+                { label: '收盘价最小值', value: `¥${formatNumber(min(closes))}` },
+                { label: '日均涨跌幅', value: `${formatNumber(mean(pctChgs))}%` },
+                { label: '涨跌幅标准差', value: `${formatNumber(std(pctChgs))}%` },
+                { label: '缺失值数量', value: '0 (数据完整)' },
+                { label: '数据列数', value: '9' }
+            ];
+
+            document.getElementById('data-summary').innerHTML = items.map(item => `
+                <div class="summary-item">
+                    <span>${item.label}</span>
+                    <span class="value">${item.value}</span>
+                </div>
+            `).join('');
+        }
+
+        function resetZoom(chartId) {
+            Plotly.relayout(chartId, { 'xaxis.autorange': true, 'yaxis.autorange': true });
+        }
+
+        function resetSection(section) {
+            if (section === 'rsi') {
+                document.getElementById('rsi-period').value = 14;
+                document.getElementById('rsi-overbought').value = 70;
+                document.getElementById('rsi-oversold').value = 30;
+            } else if (section === 'macd') {
+                document.getElementById('macd-fast').value = 12;
+                document.getElementById('macd-slow').value = 26;
+                document.getElementById('macd-signal').value = 9;
+            } else if (section === 'bollinger') {
+                document.getElementById('boll-window').value = 20;
+                document.getElementById('boll-std').value = 2;
+            }
+            updateAllCharts();
+        }
+
+        function updateAllCharts() {
+            // Update displayed control values
+            document.getElementById('rsi-period-value').textContent = document.getElementById('rsi-period').value;
+            document.getElementById('rsi-overbought-value').textContent = document.getElementById('rsi-overbought').value;
+            document.getElementById('rsi-oversold-value').textContent = document.getElementById('rsi-oversold').value;
+            document.getElementById('boll-window-value').textContent = document.getElementById('boll-window').value;
+            document.getElementById('boll-std-value').textContent = document.getElementById('boll-std').value;
+
+            renderRSI();
+            renderMACD();
+            renderBollinger();
+        }
+
+        // 导航切换
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                item.classList.add('active');
+                const sectionId = item.getAttribute('data-section');
+                document.getElementById(sectionId).classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Tab 切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.getAttribute('data-tab')).classList.add('active');
+            });
+        });
+
+        // 控件事件监听
+        ['rsi-period', 'rsi-overbought', 'rsi-oversold', 'boll-window', 'boll-std'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateAllCharts);
+        });
+        ['macd-fast', 'macd-slow', 'macd-signal'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateAllCharts);
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateHeaderStats();
+            updateDataSummary();
+            renderOverview();
+            updateAllCharts();
+            renderWorldQuant();
+        });
+    </script>
+</body>
+</html>
